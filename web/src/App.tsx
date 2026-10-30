@@ -20,7 +20,18 @@ export default function App() {
       setState(await fn());
       trackEvent(name);
     } catch (e) {
-      setError((e as Error).message);
+      const errorMessage = (e as Error).message;
+      setError(errorMessage);
+      // Track Event: a counter API call (load/increment/decrement/reset/refresh) failed.
+      // Sent directly (not via trackEvent) so the name isn't prefixed with "demo-".
+      try {
+        window.pendo?.track?.("counter_action_failed", {
+          action: name,
+          errorMessage: String(errorMessage ?? "").substring(0, 200),
+        });
+      } catch {
+        // Never let tracking failures affect the app.
+      }
     }
   };
 
