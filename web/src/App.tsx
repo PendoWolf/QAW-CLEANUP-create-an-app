@@ -20,7 +20,18 @@ export default function App() {
       setState(await fn());
       trackEvent(name);
     } catch (e) {
-      setError((e as Error).message);
+      const message = (e as Error).message;
+      setError(message);
+      // Pendo Track Event: a counter action (load, increment, decrement, reset,
+      // refresh) failed, e.g. non-OK HTTP status or network error. The demo-*
+      // events only fire on success, so this gives visibility into failures.
+      if (typeof window !== "undefined") {
+        window.pendo?.track?.("counter_action_failed", {
+          action: name,
+          errorMessage: (message ?? "unknown").substring(0, 200),
+          counter: state.counter,
+        });
+      }
     }
   };
 
