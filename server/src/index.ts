@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { trackEvent } from "./pendo";
 
 const app = express();
 
@@ -21,21 +22,30 @@ app.get("/api/state", (_req, res) => {
   res.json(state());
 });
 
-app.post("/api/increment", (_req, res) => {
+app.post("/api/increment", (req, res) => {
+  const previousCounter = counter;
   counter += 1;
   lastAction = "increment";
+  // Track Event: the increment is committed on the server.
+  trackEvent(req, "Counter incremented", { counter, previous_counter: previousCounter, last_action: lastAction });
   res.json(state());
 });
 
-app.post("/api/decrement", (_req, res) => {
+app.post("/api/decrement", (req, res) => {
+  const previousCounter = counter;
   counter -= 1;
   lastAction = "decrement";
+  // Track Event: the decrement is committed on the server.
+  trackEvent(req, "Counter decremented", { counter, previous_counter: previousCounter, last_action: lastAction });
   res.json(state());
 });
 
-app.post("/api/reset", (_req, res) => {
+app.post("/api/reset", (req, res) => {
+  const previousCounter = counter;
   counter = 0;
   lastAction = "reset";
+  // Track Event: the reset is committed on the server.
+  trackEvent(req, "Counter reset", { counter, previous_counter: previousCounter, last_action: lastAction });
   res.json(state());
 });
 
